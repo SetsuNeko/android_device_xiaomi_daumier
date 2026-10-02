@@ -1,0 +1,18 @@
+//
+// Copyright (C) 2025 The LineageOS Project
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+cc_binary {
+    name: "mtk_plpath_utils",
+    srcs: ["mtk_plpath_utils.cpp"],
+    recovery_available: true,
+    static_libs: [
+        "libfs_mgr",
+    ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
+}

@@ -1,0 +1,75 @@
+#
+# Copyright (C) 2025 The LineageOS Project
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# daumier 系统属性（TARGET_SYSTEM_PROP -> /system/build.prop）
+#
+# ════════════════════════════════════════════════════════════════════════
+# 重要说明：下面这些属性**原厂 vendor 已经全部提供**
+# ════════════════════════════════════════════════════════════════════════
+#
+# 来源（实测原厂 OS2.0.6.0.ULGCNXM）：
+#   vendor/build.prop       —— vendor 分区的构建属性
+#   vendor_boot ramdisk 的 prop.default —— 第一阶段属性
+#
+# 因为本设备树使用**预编译的 vendor blob**，这些属性在设备上本来就会生效。
+# 本文件的作用是：
+#
+#   1. **显式记录**设备的关键属性，方便查阅，不用去翻 12 GB 的镜像；
+#   2. 万一日后换了 vendor blob 导致属性缺失，system 侧还有一份兜底。
+#
+# 每一条都逐字核对过原厂值，**不是推测**。若与原厂不一致会引发难以排查的
+# 问题，所以修改前请先回原厂镜像确认。
+#
+# ⚠ 注意：ro.* 属性是只读的。system 和 vendor 都定义同一个 ro.* 属性时，
+#   先加载的生效。这里刻意与原厂保持完全一致，避免冲突。
+#
+
+# ---- 显示 ----
+# 面板原生 1440x3200，系统默认按 1080x2400 @420dpi 运行
+ro.sf.lcd_density=480
+ro.vendor.display.type=oled
+persist.sys.miui_resolution=1080,2400,420
+
+# ---- GPU ----
+# ro.gfx.driver.0 指向小米自研的 GPU 驱动包（com.xiaomi.ugd）
+ro.hardware.egl=meow
+ro.gfx.driver.0=com.xiaomi.ugd
+
+# ---- 屏下指纹（FOD）----
+# 注意属性名是「合并式」的 X_Y / width_height，不是分开的 X / Y。
+# 位置和尺寸有两套：默认一套，fhd 分辨率下一套。
+# 来源：vendor_boot ramdisk 的 prop.default 第 1123-1128 行
+ro.hardware.fp.fod=true
+persist.vendor.sys.fp.fod.location.X_Y=586,2346
+persist.vendor.sys.fp.fod.size.width_height=267,267
+persist.vendor.sys.fp.fod.location.X_Y.fhd=440,1759
+persist.vendor.sys.fp.fod.size.width_height.fhd=200,200
+ro.hardware.fp.fod.touch.ctl.version=2.0
+
+# ---- NFC ----
+# 芯片是 NXP SN110T（不是 ST21NFC —— TWRP 参考树里那份是更早的机型）
+ro.vendor.se.chip.model=SN110T
+ro.vendor.nfc.disable.i2c=true
+
+# ---- 无线连接 ----
+# 属性名是 ro.hardware.wlan.chip，不是 ro.vendor.wlan.chip
+ro.hardware.wlan.chip=mt663x
+ro.vendor.wlan.gen=gen4m_6983
+ro.vendor.wlan.chrdev=wmt_chrdev_wifi_connac2
+ro.vendor.bt.platform=6983
+ro.vendor.net.enable_passpoint_r1=1
+
+# ---- 充电 ----
+ro.vendor.mtk_fast_charging_support=1
+
+# ---- 虚拟 A/B ----
+ro.virtual_ab.enabled=true
+ro.virtual_ab.compression.enabled=true
+ro.build.ab_update=true
+
+# ---- 存储 ----
+external_storage.projid.enabled=1
+external_storage.casefold.enabled=1
+external_storage.sdcardfs.enabled=0

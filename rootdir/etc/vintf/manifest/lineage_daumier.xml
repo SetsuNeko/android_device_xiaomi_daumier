@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2025 The LineageOS Project
+    SPDX-License-Identifier: Apache-2.0
+
+    daumier 设备 manifest 补充
+
+    ⚠ 为什么用「追加」而不是 DEVICE_MANIFEST_FILE：
+
+      原厂的 device manifest 位于 vendor/etc/vintf/manifest.xml（随 blob 提供），
+      声明了 40+ 个 HAL。如果设置 DEVICE_MANIFEST_FILE，会**覆盖**掉原厂那份，
+      导致所有 HAL 声明丢失、VINTF 校验全面失败。
+
+      AOSP 的规则是：vendor/etc/vintf/manifest.xml 与 vendor/etc/vintf/manifest/*.xml
+      会被**合并**。所以本文件通过 PRODUCT_COPY_FILES 放进 manifest/ 子目录，
+      只做增量补充。
+
+    这里补充的是本设备树用源码构建的 boot HAL 的高版本接口。
+    原厂 manifest 只声明了 android.hardware.boot@1.0::IBootControl/default，
+    而 bootctrl/ 里的 MTK 实现同时提供 1.1 和 1.2。
+-->
+<manifest version="1.0" type="device">
+
+    <!-- MTK UFS 开机控制 HAL（源码：bootctrl/） -->
+    <hal format="hidl">
+        <name>android.hardware.boot</name>
+        <transport>hwbinder</transport>
+        <version>1.1</version>
+        <interface>
+            <name>IBootControl</name>
+            <instance>default</instance>
+        </interface>
+        <fqname>@1.1::IBootControl/default</fqname>
+    </hal>
+
+    <hal format="hidl">
+        <name>android.hardware.boot</name>
+        <transport>hwbinder</transport>
+        <version>1.2</version>
+        <interface>
+            <name>IBootControl</name>
+            <instance>default</instance>
+        </interface>
+        <fqname>@1.2::IBootControl/default</fqname>
+    </hal>
+
+</manifest>

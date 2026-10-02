@@ -1,0 +1,10 @@
+# Copyright (C) 2025 The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# daumier 设备专属属性上下文
+#
+# 原厂 vendor/etc/selinux/vendor_property_contexts（52749 字节）随 blob 提供。
+# 这里只补充 LineageOS 新增的。
+
+# MTK preloader 路径工具
+vendor.mtk_plpath_utils.u:object_r:vendor_default_prop:s0

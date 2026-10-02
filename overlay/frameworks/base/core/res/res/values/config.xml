@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2025 The LineageOS Project
+    SPDX-License-Identifier: Apache-2.0
+
+    daumier 框架资源覆盖
+
+    注意：这是一份**保守的起步版本**，只收录有实测依据、且改动风险低的项。
+
+    原厂的大量框架定制是通过 product/overlay 和 mi_ext 里的 RRO APK 实现的，
+    那些不适用于 LineageOS。若需要更精细的定制（自动亮度曲线、显示挖孔路径、
+    刷新率策略等），应当从原厂 product/overlay 中提取对应的资源值，
+    而不是凭空写。
+-->
+<resources>
+
+    <!-- ==================== 存储 ==================== -->
+    <!-- daumier 无 SD 卡槽（lineage_daumier.mk 里 PRODUCT_CHARACTERISTICS := nosdcard） -->
+    <bool name="config_hasRemovableStorageSlot">false</bool>
+    <bool name="config_hasInternalStorage">true</bool>
+
+    <!-- ==================== 屏幕 ==================== -->
+    <!-- 面板原生 1440x3200，系统默认跑 1080x2400
+         （来源：persist.sys.miui_resolution=1080,2400,420） -->
+    <bool name="config_supportAutoRotation">true</bool>
+
+    <!-- ==================== 音频 ==================== -->
+    <!-- 保留未处理的音频源，MTK 音频 HAL 需要 -->
+    <bool name="config_supportAudioSourceUnprocessed">true</bool>
+
+    <!-- ==================== 输入 ==================== -->
+    <!-- 该机有独立的耳机检测节点 -->
+    <bool name="config_useDevInputEventForAudioJack">true</bool>
+
+</resources>

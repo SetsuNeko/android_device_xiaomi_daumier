@@ -1,0 +1,81 @@
+# Copyright (C) 2025 The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# daumier (MT6983) 挂载表
+#
+# 基于原厂 OS2.0.6.0.ULGCNXM 的 vendor/etc/fstab.mt6983 实测内容改写。
+#
+# 相对原厂的改动：
+#   1. 删掉 avb_keys=/avb/q-gsi.avbpubkey:... —— 那两个 ramdisk 里都没有
+#      /avb/ 目录，是 GSI 时代的悬空引用。
+#   2. 删掉 mi_ext 的 overlay 挂载 —— 那是小米把 mi_ext 内容叠加到
+#      system/product 上的私有机制，LineageOS 不需要。
+#   3. 逻辑分区只保留 erofs 一行 —— 原厂同时写了 erofs/ext4 两行是给
+#      工厂模式兼容用的，我们只构建 erofs。
+
+# ---- 动态分区（在 super 里）----
+system       /system       erofs  ro  wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+system_ext   /system_ext   erofs  ro  wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+product      /product      erofs  ro  wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+vendor       /vendor       erofs  ro  wait,slotselect,avb,logical,first_stage_mount
+odm          /odm          erofs  ro  wait,slotselect,avb,logical,first_stage_mount
+vendor_dlkm  /vendor_dlkm  erofs  ro  wait,slotselect,avb,logical,first_stage_mount
+odm_dlkm     /odm_dlkm     erofs  ro  wait,slotselect,avb,logical,first_stage_mount
+
+# mi_ext 是小米私有分区，本设备树不构建它。
+# 保留这行 + nofail 是为了兼容：万一刷了带 mi_ext 的原厂 super，也能正常挂载。
+mi_ext       /mnt/vendor/mi_ext  erofs  ro  wait,slotselect,avb,logical,first_stage_mount,nofail
+
+# ---- 物理分区 ----
+/dev/block/by-name/metadata  /metadata         ext4   noatime,nosuid,nodev,discard  wait,check,formattable,first_stage_mount
+/dev/block/by-name/userdata  /data             f2fs   noatime,nosuid,nodev,discard,noflush_merge,fsync_mode=nobarrier,reserve_root=134217,resgid=1065,checkpoint_merge,gc_merge,inlinecrypt  wait,check,formattable,quota,latemount,resize,reservedsize=128m,checkpoint=fs,fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized,keydirectory=/metadata/vold/metadata_encryption,fsverity
+/dev/block/by-name/rescue    /cache            ext4   noatime,nosuid,nodev,noauto_da_alloc,discard  wait,check,formattable
+/dev/block/by-name/persist   /mnt/vendor/persist  ext4  noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc  wait,check,formattable
+/dev/block/by-name/nvdata    /mnt/vendor/nvdata   ext4  noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc  wait,check,formattable
+/dev/block/by-name/nvcfg     /mnt/vendor/nvcfg    ext4  noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc  wait,check,formattable
+/dev/block/by-name/protect1  /mnt/vendor/protect_f  ext4  noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc  wait,check,formattable
+/dev/block/by-name/protect2  /mnt/vendor/protect_s  ext4  noatime,nosuid,nodev,noauto_da_alloc,commit=1,nodelalloc  wait,check,formattable
+
+# ---- 可移动存储 ----
+/devices/platform/soc/11240000.mmc*                        auto  auto   defaults  voldmanaged=sdcard1:auto,encryptable=userdata
+/devices/platform/soc/11201000.usb0/11200000.xhci*         auto  vfat   defaults  voldmanaged=usbotg:auto
+/devices/platform/soc/11211000.usb1/11210000.xhci*         auto  vfat   defaults  voldmanaged=usbotg:auto
+
+# ---- MTK 裸分区（不挂载，只声明，给工具用）----
+/dev/block/by-name/boot           /boot           emmc  defaults  first_stage_mount,nofail,slotselect
+/dev/block/by-name/vbmeta         /vbmeta         emmc  defaults  defaults
+/dev/block/by-name/vbmeta_system  /vbmeta_system  emmc  defaults  first_stage_mount,nofail,slotselect,avb=vbmeta
+/dev/block/by-name/vbmeta_vendor  /vbmeta_vendor  emmc  defaults  first_stage_mount,nofail,slotselect
+/dev/block/by-name/dtbo           /dtbo           emmc  defaults  defaults
+/dev/block/by-name/misc           /misc           emmc  defaults  defaults
+/dev/block/by-name/para           /para           emmc  defaults  defaults
+/dev/block/by-name/expdb          /expdb          emmc  defaults  defaults
+/dev/block/by-name/frp            /persistent     emmc  defaults  defaults
+/dev/block/by-name/nvram          /nvram          emmc  defaults  defaults
+/dev/block/by-name/proinfo        /proinfo        emmc  defaults  defaults
+/dev/block/by-name/logo           /logo           emmc  defaults  defaults
+/dev/block/by-name/seccfg         /seccfg         emmc  defaults  defaults
+/dev/block/by-name/md1img         /md1img         emmc  defaults  defaults
+/dev/block/by-name/md1dsp         /md1dsp         emmc  defaults  defaults
+/dev/block/by-name/md1arm7        /md1arm7        emmc  defaults  defaults
+/dev/block/by-name/md3img         /md3img         emmc  defaults  defaults
+/dev/block/by-name/spmfw          /spmfw          emmc  defaults  defaults
+/dev/block/by-name/audio_dsp      /audio_dsp      emmc  defaults  defaults
+/dev/block/by-name/pi_img         /pi_img         emmc  defaults  defaults
+/dev/block/by-name/boot_para      /boot_para      emmc  defaults  defaults
+/dev/block/by-name/odmdtbo        /odmdtbo        emmc  defaults  defaults
+/dev/block/by-name/otp            /otp            emmc  defaults  defaults
+/dev/block/by-name/tee1           /tee1           emmc  defaults  defaults
+/dev/block/by-name/tee2           /tee2           emmc  defaults  defaults
+/dev/block/by-name/scp1           /scp1           emmc  defaults  defaults
+/dev/block/by-name/scp2           /scp2           emmc  defaults  defaults
+/dev/block/by-name/sspm_1         /sspm_1         emmc  defaults  defaults
+/dev/block/by-name/sspm_2         /sspm_2         emmc  defaults  defaults
+/dev/block/by-name/dpm_1          /dpm_1          emmc  defaults  defaults
+/dev/block/by-name/dpm_2          /dpm_2          emmc  defaults  defaults
+/dev/block/by-name/mcupm_1        /mcupm_1        emmc  defaults  defaults
+/dev/block/by-name/mcupm_2        /mcupm_2        emmc  defaults  defaults
+/dev/block/by-name/gz1            /gz1            emmc  defaults  defaults
+/dev/block/by-name/gz2            /gz2            emmc  defaults  defaults
+/dev/block/by-name/lk             /bootloader     emmc  defaults  defaults
+/dev/block/by-name/lk2            /bootloader2    emmc  defaults  defaults

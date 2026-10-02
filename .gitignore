@@ -1,34 +1,31 @@
-# Gradle files
-.gradle/
-build/
+# ────────────────────────────────────────────────────────────────────────────
+# 本地工作暂存区
+# ────────────────────────────────────────────────────────────────────────────
+# 原厂镜像（8.1 GB）、提取出的中间产物、TWRP 参考树、分析工具都在这里，
+# 合计约 12 GB。只存在于开发机上，不入库。
+#
+# 布局：
+#   .staging/images/   原厂 OS2.0.6.0.ULGCNXM 的镜像
+#   .staging/work/     提取出的 daumier blob 与 ramdisk
+#   .staging/twrp/     TWRP 参考树
+#   .staging/tools/    纯 Python 分析工具 + 静态编译的 erofs 工具
+.staging/
 
-# Local configuration file (sdk path, etc)
-local.properties
+# ────────────────────────────────────────────────────────────────────────────
+# Python
+# ────────────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
 
-# Log/OS Files
+# ────────────────────────────────────────────────────────────────────────────
+# 编辑器 / 操作系统
+# ────────────────────────────────────────────────────────────────────────────
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ────────────────────────────────────────────────────────────────────────────
+# 杂项
+# ────────────────────────────────────────────────────────────────────────────
 *.log
-
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
-*.apk
-output-metadata.json
-
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
-
-# Keystore files
-*.jks
-*.keystore
-
-# Google Services (e.g. APIs or Firebase)
-google-services.json
-
-# Android Profiling
-*.hprof
