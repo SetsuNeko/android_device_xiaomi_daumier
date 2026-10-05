@@ -24,6 +24,14 @@ $(call inherit-product, device/xiaomi/daumier/device.mk)
 # 厂商 blob
 $(call inherit-product, vendor/xiaomi/daumier/daumier-vendor.mk)
 
+# LineageOS 公共配置（App、SetupWizard、默认铃声等全家桶）
+# 缺这一行的后果（2026-10-04 实测）：
+#   1) soong 不会排除 prebuilts/misc/protobuf_vendorcompat（common.mk:6 做的），
+#      与 hardware/lineage/compat 的同名 prebuilt_libprotobuf-*-vendorcompat 撞名，
+#      Android.bp 解析直接失败；
+#   2) 整个 LineageOS 产品配置都不会加载（dash 树同位置有这行）。
+$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+
 # 产品标识
 PRODUCT_NAME := lineage_daumier
 PRODUCT_DEVICE := daumier

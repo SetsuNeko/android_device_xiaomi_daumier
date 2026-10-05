@@ -47,6 +47,23 @@ TARGET_INIT_VENDOR_LIB := libinit_daumier
 TARGET_RECOVERY_DEVICE_MODULES := libinit_daumier
 
 # ============================================================================
+# Soong namespaces
+# ----------------------------------------------------------------------------
+#   $(LOCAL_PATH)：本设备树自带 Soong 模块（bootctrl/、mtk_plpath_utils/、
+#     init/），注册后其对产品可见，否则 PRODUCT_PACKAGES 报 non-existent；
+#   hardware/mediatek（mtkpower/mtkperf 等 HIDL 接口源码）与
+#   hardware/xiaomi（displayfeature/touchfeature 等）是 blob 的依赖来源，
+#   不注册会报 depends on undefined module。
+#   与 dash 树 device.mk 同款写法。
+# ============================================================================
+PRODUCT_SOONG_NAMESPACES += \
+    $(LOCAL_PATH) \
+    hardware/mediatek \
+    hardware/mediatek/libaedv \
+    hardware/mediatek/libmtkperf_client \
+    hardware/xiaomi
+
+# ============================================================================
 # A/B OTA 后处理
 # ----------------------------------------------------------------------------
 # mtk_plpath_utils 需要在 OTA 后运行，重建 preloader 的 device-mapper 节点。
@@ -121,8 +138,28 @@ PRODUCT_PACKAGES += \
 # ============================================================================
 
 # 设备 manifest 追加（不覆盖原厂）
-PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/rootdir/etc/vintf/manifest/lineage_daumier.xml:$(TARGET_COPY_OUT_VENDOR)/etc/vintf/manifest/lineage_daumier.xml
+# 2026-10-05：AOSP 新版禁止用 PRODUCT_COPY_FILES 装 VINTF 元数据
+# （build/make/core/Makefile:148 检查），改用专用变量 DEVICE_MANIFEST_FILES
+# （可多文件、合并进 vendor manifest，不覆盖原厂那份）。
+DEVICE_MANIFEST_FILES += \
+    $(DEVICE_PATH)/rootdir/etc/vintf/manifest/lineage_daumier.xml
+
+# ODM VINTF SKU manifest 片段（radio HAL 的 4 个卡型变体）
+# AOSP 的 ODM_MANIFEST_SKUS + ODM_MANIFEST_<SKU>_FILES 机制自带
+# assemble_vintf 合并并安装成 odm/etc/vintf/manifest_<sku>.xml
+# （build/make/target/board/android-info.mk:117），源文件直接指到
+# vendor 树里提取出的原厂文件。
+ODM_MANIFEST_SKUS := dsds qsqs ss tsts
+ODM_MANIFEST_FILES := \
+    vendor/xiaomi/daumier/proprietary/odm/etc/vintf/manifest_dsds.xml
+ODM_MANIFEST_DSDS_FILES := \
+    vendor/xiaomi/daumier/proprietary/odm/etc/vintf/manifest_dsds.xml
+ODM_MANIFEST_QSQS_FILES := \
+    vendor/xiaomi/daumier/proprietary/odm/etc/vintf/manifest_qsqs.xml
+ODM_MANIFEST_SS_FILES := \
+    vendor/xiaomi/daumier/proprietary/odm/etc/vintf/manifest_ss.xml
+ODM_MANIFEST_TSTS_FILES := \
+    vendor/xiaomi/daumier/proprietary/odm/etc/vintf/manifest_tsts.xml
 
 # 框架兼容性矩阵片段：声明本设备树新增的 boot HAL，并归档原厂 vendor 的 HAL 清单
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \

@@ -1,0 +1,22 @@
+// ============================================================================
+// daumier 设备树 Soong 模块
+// ----------------------------------------------------------------------------
+// 本设备树的 HAL 接口与自定义源码模块目前都在 mk / vendor 树里，
+// 这个文件仅声明 soong_namespace（blob 依赖 hardware/mediatek、
+// hardware/xiaomi 的接口源码），保持命名空间一致性。
+// 若日后往设备树里加 Soong 模块（cc_library / prebuilt_etc 等），写在这里。
+//
+// ODM 的 4 个 VINTF SKU manifest（dsds/qsqs/ss/tsts）**不走这里**：
+// AOSP 的 ODM_MANIFEST_SKUS + ODM_MANIFEST_<SKU>_FILES 机制自带
+// assemble_vintf 合并安装（build/make/target/board/android-info.mk:117），
+// 源 fragment 在 device.mk 里引用 vendor 树提取出的文件。
+// ============================================================================
+
+soong_namespace {
+    imports: [
+        "hardware/mediatek",
+        "hardware/mediatek/libaedv",
+        "hardware/mediatek/libmtkperf_client",
+        "hardware/xiaomi",
+    ],
+}

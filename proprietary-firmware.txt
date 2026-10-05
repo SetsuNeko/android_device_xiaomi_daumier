@@ -1,0 +1,29 @@
+# Xiaomi 12 Pro Dimensity (daumier) 固件镜像清单
+#
+# 提取自：原厂 OS2.0.6.0.ULGCNXM（MT6983 线刷包 images/ 目录）
+#
+# 这些是**分区镜像**（不是分区里的文件），由提取器放进
+#   vendor/xiaomi/daumier/radio/
+# 并生成 vendor/xiaomi/daumier/Android.mk：
+#   $(call add-radio-file-sha1-checked,radio/<name>,<sha1>)
+# 构建时复制成 $(PRODUCT_OUT)/<name>.img，随 OTA 一起刷入。
+#
+# ';AB' 表示 A/B 双槽设备：提取器会把分区名写进
+#   vendor/xiaomi/daumier/BoardConfigVendor.mk 的 AB_OTA_PARTITIONS。
+# （该文件需要在 BoardConfig.mk 里 include，见那边的 "Inherit the proprietary files"）
+#
+# 为什么至少要 dtbo：
+#   device/xiaomi/daumier/lineage_daumier.mk 的 AB_OTA_PARTITIONS 里有 dtbo，
+#   BoardConfig.mk 也定了 BOARD_DTBOIMG_PARTITION_SIZE，但设备树里没有 dtbo.img。
+#   缺它时 OTA 打包阶段会失败（找不到 dtbo.img）。
+#   原厂 dtbo.img：81712 字节，dt_table 1 个 overlay（77920 字节 DT blob），
+#   md5 = 3e5cdb3b27e9b5a686e26cc435340fb4
+#
+# 其它固件分区（md1img/tee/lk/gpueb/scp/apusys/vcp/... 共 20 个）暂未纳入：
+#   它们只影响 OTA 是否顺带刷新基带/安全固件，不影响编译。
+#   要纳入的话，把镜像从原厂包 images/ 复制到提取输入目录根部，
+#   在下面按同样格式加一行（如 `md1img.img;AB`）再重跑提取即可。
+#
+# 注意：文件名必须与提取输入目录根部的文件名一致（提取器按 file.dst 找）。
+
+dtbo.img;AB

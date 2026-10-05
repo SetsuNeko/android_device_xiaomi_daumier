@@ -35,7 +35,7 @@ TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := cortex-a55
 TARGET_2ND_CPU_VARIANT_RUNTIME := cortex-a55
 
-TARGET_USES_64_BIT_BINDER := true
+# （TARGET_USES_64_BIT_BINDER 已废弃，AOSP 现在默认全部 64 位 binder，不再设置）
 TARGET_SUPPORTS_64_BIT_APPS := true
 
 # ============================================================================
@@ -47,6 +47,26 @@ TARGET_BOARD_PLATFORM := mt6983
 TARGET_BOOTLOADER_BOARD_NAME := mt6983
 
 TARGET_NO_BOOTLOADER := true
+
+# ============================================================================
+# 镜像分区目录（TARGET_COPY_OUT_*）
+# ----------------------------------------------------------------------------
+# 本树是 A/B + 动态分区 + 独立 vendor/odm/product/system_ext/vendor_dlkm/
+# odm_dlkm 镜像（下方 BOARD_*IMAGE_FILE_SYSTEM_TYPE），这些目录必须显式
+# 指到分区根，否则保留 envsetup 里的 _placeholder（system/vendor 等），
+# 与镜像类型声明互相矛盾 → board_config.mk:705 直接 error 挡掉 lunch。
+# 值与 dash 树一致。
+# ============================================================================
+TARGET_COPY_OUT_ODM := odm
+TARGET_COPY_OUT_ODM_DLKM := odm_dlkm
+TARGET_COPY_OUT_PRODUCT := product
+# 不设 TARGET_COPY_OUT_SYSTEM_DLKM：本机 super 里没有 system_dlkm 分区
+# （stock 的 main 组只有 system/system_ext/product/vendor/odm/vendor_dlkm/
+# odm_dlkm/mi_ext）。设成 'system_dlkm' 会触发 board_config.mk:919 要求
+# BOARD_SYSTEM_DLKMIMAGE_FILE_SYSTEM_TYPE，而本机根本不构建该镜像。
+TARGET_COPY_OUT_SYSTEM_EXT := system_ext
+TARGET_COPY_OUT_VENDOR := vendor
+TARGET_COPY_OUT_VENDOR_DLKM := vendor_dlkm
 
 # 内核：使用预编译的 Google GKI 内核，不编译内核源码
 #   实测版本 5.10.226-android12-9-00047-g4968e29b7f92-ab12786767
@@ -100,6 +120,10 @@ BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
 # prebuilt/dtb.img 提取自 OS2.0.6.0 的 vendor_boot.img
 #   md5 = e61a55917fca5b33eb28888c534f4248
 # （TWRP 参考树里那份 815cd375ad7434a1bf67b06911e782dd 是 MIUI 14 时期的，已弃用）
+# BOARD_INCLUDE_DTB_IN_BOOTIMG：AOSP 要求设置 BOARD_PREBUILT_DTBIMAGE_DIR 时
+# 必须为 true（board_config.mk:1006）。GKI 模式下它实际生效的位置是
+# vendor_boot（本机 DTB 实测就在 vendor_boot 里，与原厂一致）。
+BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_PREBUILT_DTBIMAGE_DIR := $(DEVICE_PATH)/prebuilt
 
 # ============================================================================
@@ -288,3 +312,14 @@ TARGET_SYSTEM_PROP := $(DEVICE_PATH)/system.prop
 # 注：BOARD_USES_METADATA_PARTITION 已在「分区尺寸」一节设置，此处不重复。
 BOARD_SUPER_PARTITION_METADATA_DEVICE := super
 BOARD_SUPER_PARTITION_BLOCK_DEVICES := super
+
+# ============================================================================
+# 继承 vendor 树生成的配置（提取器写出来的，勿手改）
+# ----------------------------------------------------------------------------
+# vendor/xiaomi/daumier/BoardConfigVendor.mk 由 extract-files.py 生成：
+#   proprietary-firmware.txt 里带 ';AB' 的镜像会写进 AB_OTA_PARTITIONS。
+# 本树原本漏了这一行 include（dash 树末尾有），导致提取器生成的
+# AB_OTA_PARTITIONS 永远不生效 —— dtbo 靠 lineage_daumier.mk 里那份兜住了，
+# 但以后往 proprietary-firmware.txt 加镜像（基带、tee 等）就会静默丢失。
+# ============================================================================
+include vendor/xiaomi/daumier/BoardConfigVendor.mk
