@@ -7,4 +7,7 @@
 # 这里只补充 LineageOS 新增的。
 
 # MTK preloader 路径工具
-vendor.mtk_plpath_utils.u:object_r:vendor_default_prop:s0
+# 本地补丁（AviumUI 构建）：原行把属性名和 context 之间的空格写成了 '.'：
+#   vendor.mtk_plpath_utils.u:object_r:vendor_default_prop:s0
+# check_prop_prefix 报 ValueError: malformed entry（属性名与 context 必须用空白分隔）
+vendor.mtk_plpath_utils u:object_r:vendor_default_prop:s0

@@ -74,5 +74,14 @@ allow mtk_plpath_utils dm_device:chr_file { open read write ioctl };
 allow mtk_plpath_utils self:capability { sys_admin sys_rawio };
 
 # 判断存储类型要读 sysfs
-allow mtk_plpath_utils sysfs_block:file r_file_perms;
-allow mtk_plpath_utils sysfs_block:dir r_dir_perms;
+# 原 A12 的 sysfs_block 类型在 A16（platform 36.0）已删除，编译报：
+#   ERROR 'unknown type sysfs_block'（checkpolicy -c 30）
+# 替换为 A16 的实际标签：
+#   - 虚拟块设备 /sys/devices/virtual/block/* → sysfs_devices_block（public/file.te:104）
+#   - 物理块设备节点无专属 genfs 标签 → 落到通用 sysfs
+# （dash / MTK 自家 sepolicy 对 root 工具同样放行通用 sysfs 读：
+#   recovery.te:19 / factory.te:283 / hal_bootctl_default.te:6）
+allow mtk_plpath_utils sysfs_devices_block:file r_file_perms;
+allow mtk_plpath_utils sysfs_devices_block:dir r_dir_perms;
+allow mtk_plpath_utils sysfs:file r_file_perms;
+allow mtk_plpath_utils sysfs:dir r_dir_perms;
