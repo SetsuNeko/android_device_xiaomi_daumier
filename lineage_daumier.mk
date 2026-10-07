@@ -14,6 +14,12 @@
 #
 
 # 64 位 + 32 位兼容（abilist 含 armeabi-v7a）
+# AviumUI 元数据（须在任何 vendor/avium 配置被解析前定义；不写就是 Unknown）
+# 维护者三人：YueXuSi&LittleZero&SetSuNeko（SetSuNeko = 设备树作者）
+AVIUM_MAINTAINER ?= YueXuSi&LittleZero&SetSuNeko
+AVIUM_SETTINGS_SOC_MODEL_NAME ?= Dimensity 9000+
+AVIUM_SETTINGS_DEVICE_CODENAME ?= Xiaomi 12 Pro Dimensity Edition
+
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/updatable_apex.mk)
