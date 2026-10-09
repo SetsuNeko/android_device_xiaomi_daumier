@@ -96,6 +96,20 @@ BOARD_TAGS_OFFSET := 0x07c88000
 BOARD_DTB_OFFSET := 0x07c88000
 
 BOARD_BOOT_HEADER_VERSION := 4
+
+# 本地补丁（AviumUI 构建）：vendor_boot 的 mkbootimg 调用不传 --header_version
+# （Makefile:1758 只拼 INTERNAL_VENDOR_BOOTIMAGE_ARGS + BOARD_MKBOOTIMG_ARGS），
+# mkbootimg 默认 header_version=0 → 拒绝 recovery 片段参数：
+#   ValueError: Unrecognized arguments: ['--ramdisk_type', 'RECOVERY',
+#               '--ramdisk_name', 'recovery', '--vendor_ramdisk_fragment', ...]
+# （mkbootimg.py:567 只有 header_version>3 才消费这组参数；dash 树同款修法：
+#   BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)）
+BOARD_MKBOOTIMG_ARGS += \
+    --base $(BOARD_KERNEL_BASE) \
+    --header_version $(BOARD_BOOT_HEADER_VERSION) \
+    --kernel_offset $(BOARD_KERNEL_OFFSET) \
+    --tags_offset $(BOARD_TAGS_OFFSET) \
+    --dtb_offset $(BOARD_DTB_OFFSET)
 BOARD_HEADER_SIZE := 2128
 BOARD_PAGE_SIZE := 4096
 BOARD_FLASH_BLOCK_SIZE := 262144
@@ -124,6 +138,12 @@ BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
 # 必须为 true（board_config.mk:1006）。GKI 模式下它实际生效的位置是
 # vendor_boot（本机 DTB 实测就在 vendor_boot 里，与原厂一致）。
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
+# 本地补丁（AviumUI 构建）：vendor_ramdisk / vendor_dlkm 的 234+ 个内核模块
+# (.ko) 必须按原厂路径经 PRODUCT_COPY_FILES 安装，AOSP 默认拒绝 ELF 文件：
+#   error: found ELF prebuilt in PRODUCT_COPY_FILES, use cc_prebuilt_binary...
+# 打开官方逃生阀（同 dash 的做法，见 build/make/core/Makefile:135）。
+BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+
 BOARD_PREBUILT_DTBIMAGE_DIR := $(DEVICE_PATH)/prebuilt
 
 # ============================================================================
@@ -149,6 +169,20 @@ BOARD_MAIN_SIZE := 9116319744
 # 因此这里只列 7 个。super 会小 144 KiB，对功能无影响。
 # 若日后确实需要 mi_ext，需自行补一套自定义分区构建规则。
 #
+# 本地补丁（AviumUI 构建）：7 个逻辑分区都没有声明
+# BOARD_<X>IMAGE_PARTITION_SIZE / _RESERVED_SIZE，build_image.py 拿不到
+# partition_size 直接崩：
+#   KeyError: 'partition_size'（Target odm fs image / odm.img）
+# dash（msm8996-common）的做法是全部用 _RESERVED_SIZE（按内容 + 预留生成镜像，
+# OTA 的 dynamic_partitions_op_list 会把分区 grow 到镜像大小）。同款：
+BOARD_SYSTEMIMAGE_PARTITION_RESERVED_SIZE := 209715200        # 200 MiB
+BOARD_SYSTEM_EXTIMAGE_PARTITION_RESERVED_SIZE := 209715200    # 200 MiB
+BOARD_PRODUCTIMAGE_PARTITION_RESERVED_SIZE := 629145600      # 600 MiB
+BOARD_VENDORIMAGE_PARTITION_RESERVED_SIZE := 419430400       # 400 MiB（blob 2GB+）
+BOARD_ODMIMAGE_PARTITION_RESERVED_SIZE := 2097152            # 2 MiB（odm 仅 17MiB）
+BOARD_VENDOR_DLKMIMAGE_PARTITION_RESERVED_SIZE := 2097152    # 2 MiB
+BOARD_ODM_DLKMIMAGE_PARTITION_RESERVED_SIZE := 1048576      # 1 MiB
+
 BOARD_MAIN_PARTITION_LIST := \
     system \
     system_ext \

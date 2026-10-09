@@ -61,6 +61,11 @@ LOCAL_MODULE_CLASS := ETC
 LOCAL_MODULE_PATH := $(TARGET_VENDOR_RAMDISK_OUT)
 LOCAL_MODULE_STEM := .symlinks.stamp
 LOCAL_SRC_FILES := .symlinks.stamp
+# 本地补丁（AviumUI 构建）：断言依赖的 prop.default 由 vendor_ramdisk_files.mk
+# 的 PRODUCT_COPY_FILES 落地，但 ninja 对两者之间**没有顺序保证**（实测先跑
+# stamp 后跑 copy → 断言误报）。显式补一条依赖边，让 copy 先完成。
+LOCAL_ADDITIONAL_DEPENDENCIES += $(TARGET_VENDOR_RAMDISK_OUT)/prop.default
+
 LOCAL_POST_INSTALL_CMD := \
 	if [ ! -f '$(TARGET_VENDOR_RAMDISK_OUT)/prop.default' ]; then \
 	    echo "*** vendor ramdisk 目录定位失败 ***"; \

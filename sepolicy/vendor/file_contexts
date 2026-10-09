@@ -16,18 +16,12 @@
 # ────────────────────────────────────────────────────────────────────────
 #
 # 为什么必须在这里定义：
-#   原厂把 /system/bin/mtk_plpath_utils 的上下文放在 **system_ext 策略**里
 #   （见原厂 vendor_boot ramdisk 的 system_ext_file_contexts 第 50 行）：
-#       /system/bin/mtk_plpath_utils u:object_r:mtk_plpath_utils_exec:s0
 #
 #   而 system_ext 分区在 LineageOS 上是从源码重新构建的，小米那层策略不复存在，
-#   类型 mtk_plpath_utils_exec 也就没人定义了。所以必须由设备树补上，
-#   对应的域声明在 sepolicy/vendor/mtk_plpath_utils.te。
 #
-# 安装路径说明：mtk_plpath_utils/Android.bp 里没写 vendor: true，
 #   所以装到 /system/bin（与原厂 init.recovery.mt6983.rc 第 12 行的调用路径一致）。
 #
-/system/bin/mtk_plpath_utils   u:object_r:mtk_plpath_utils_exec:s0
 
 # ────────────────────────────────────────────────────────────────────────
 # 开机控制 HAL（bootctrl/）—— 这里**刻意不定义**

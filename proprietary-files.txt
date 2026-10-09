@@ -256,7 +256,12 @@ vendor/bin/hw/android.hardware.graphics.composer@2.1-service
 vendor/bin/hw/android.hardware.graphics.composer@2.3-service
 vendor/bin/hw/android.hardware.health@2.1-service
 vendor/bin/hw/android.hardware.lights-service.mediatek
-vendor/bin/hw/android.hardware.media.c2@1.2-mediatek
+# 本地补丁（AviumUI 构建）：32 位 c2 服务已移除。init rc 只启动 -64b 那个
+# （android.hardware.media.c2@1.2-mediatek-64b.rc 是唯一引用），这个 32 位二进制
+# 是原厂遗留死重；它会拉起 [arm] 变体的 libcodec2_hidl@1.0 链，而 A16 的
+# libcodec2_vndk 只有 arm64 → ld.lld: undefined symbol: FilterWrapper::getParamReflector
+# （32 位 plugin 从未构建，out 里只有 android_vendor_arm64_*）。
+# vendor/bin/hw/android.hardware.media.c2@1.2-mediatek
 vendor/bin/hw/android.hardware.media.c2@1.2-mediatek-64b
 vendor/bin/hw/android.hardware.media.omx@1.0-service
 vendor/bin/hw/android.hardware.memtrack-service.mediatek
@@ -899,7 +904,11 @@ vendor/etc/camera/com.xiaomi.dcal.wu.golden
 vendor/etc/camera/deblur_sd_opencl_binary.bin
 vendor/etc/camera/deblur_sd_opencl_params.bin
 vendor/etc/camera/deblur_txt_apu.bin
-vendor/etc/camera/gma_custom.xml
+# 本地补丁（AviumUI 构建）：MTK 相机调参文件，内容不是合法 XML（纯文本），
+# PRODUCT_COPY_FILES 会对 .xml 目标自动跑 xmllint →
+#   parser error : Start tag expected, '<' not found
+# dash 同款问题（那边也是直接不收）。不影响启动。
+# vendor/etc/camera/gma_custom.xml
 vendor/etc/camera/ldc/AI_Seg.bin
 vendor/etc/camera/ldc/LDC_FPC_TUNING.bin
 vendor/etc/camera/ldc/LDC_FPC_TUNING_AI.bin

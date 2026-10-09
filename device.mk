@@ -33,11 +33,13 @@ DEVICE_PATH := device/xiaomi/daumier
 # .recovery 变体由 Soong 为带 recovery_available: true 的模块自动生成，
 # 用于 recovery 环境。接法参照 TWRP 参考树（已验证可用）。
 # ============================================================================
+# 本地补丁（AviumUI 构建）：mtk_plpath_utils 两个包已移除。这个工具的架构
+# （/system 二进制 + vendor 域）在 A16 treble 测试下非法（system_file_type /
+# coredomain 强制），其核心功能（正常启动中裸读块设备）也被 domain.te:744
+# neverallow 封死 —— 在 A16 上它无法工作，整体停用（.te / file_contexts 同删）。
 PRODUCT_PACKAGES += \
     android.hardware.boot@1.2-mtkimpl \
-    android.hardware.boot@1.2-mtkimpl.recovery \
-    mtk_plpath_utils \
-    mtk_plpath_utils.recovery
+    android.hardware.boot@1.2-mtkimpl.recovery
 
 PRODUCT_PACKAGES_DEBUG += \
     bootctrl
@@ -66,14 +68,10 @@ PRODUCT_SOONG_NAMESPACES += \
 # ============================================================================
 # A/B OTA 后处理
 # ----------------------------------------------------------------------------
-# mtk_plpath_utils 需要在 OTA 后运行，重建 preloader 的 device-mapper 节点。
-# 来源：TWRP 参考树 device.mk（实测可用）
+# 本地补丁（AviumUI 构建）：原配置用 mtk_plpath_utils 做 OTA 后处理，该工具已停用
+# （A16 下其 /system+vendor 域架构非法、裸块设备读取被 neverallow 封死），
+# POSTINSTALL 一并移除。preloader 的 pl_a/pl_b 符号链接将不复存在。
 # ============================================================================
-AB_OTA_POSTINSTALL_CONFIG += \
-    RUN_POSTINSTALL_system=true \
-    POSTINSTALL_PATH_system=system/bin/mtk_plpath_utils \
-    FILESYSTEM_TYPE_system=ext4 \
-    POSTINSTALL_OPTIONAL_system=true
 
 # ============================================================================
 # 配置文件
@@ -137,12 +135,19 @@ PRODUCT_PACKAGES += \
 #       三种 VINTF 变量的分工见 configs/vintf/compatibility_matrix.xml 顶部注释。
 # ============================================================================
 
-# 设备 manifest 追加（不覆盖原厂）
-# 2026-10-05：AOSP 新版禁止用 PRODUCT_COPY_FILES 装 VINTF 元数据
-# （build/make/core/Makefile:148 检查），改用专用变量 DEVICE_MANIFEST_FILES
-# （可多文件、合并进 vendor manifest，不覆盖原厂那份）。
-DEVICE_MANIFEST_FILES += \
-    $(DEVICE_PATH)/rootdir/etc/vintf/manifest/lineage_daumier.xml
+# 本地补丁（AviumUI 构建）：上面注释里的方案有个致命笔误——AOSP 的变量是
+# DEVICE_MANIFEST_FILE（单数），DEVICE_MANIFEST_FILES（复数）不存在，
+# 结果主 manifest 从未安装，checkvintf --check-one 报：
+#   getDeviceHalManifest: Cannot read vendor/manifest.xml: No such file or directory
+# 修复：用官方变量 DEVICE_MANIFEST_FILE 指向原厂主清单的副本
+# （configs/vintf/vendor_manifest.xml，composer@2.1 条目已删，
+# 由原厂片段 manifest_hwcomposer.xml 的 @2.3 覆盖，避免版本冲突）。
+# assemble_vintf 会生成为 vendor/etc/vintf/manifest.xml；
+# vendor/etc/vintf/manifest/ 下的原厂片段照常安装并在运行时合并。
+# rootdir/etc/vintf/manifest/lineage_daumier.xml（boot 1.1/1.2 补充）不再
+# 单独安装：主清单有 boot@1.0、原厂片段有 boot@1.2，已够用。
+DEVICE_MANIFEST_FILE += \
+    $(DEVICE_PATH)/configs/vintf/vendor_manifest.xml
 
 # ODM VINTF SKU manifest 片段（radio HAL 的 4 个卡型变体）
 # AOSP 的 ODM_MANIFEST_SKUS + ODM_MANIFEST_<SKU>_FILES 机制自带
