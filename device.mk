@@ -192,3 +192,15 @@ DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \
 # ============================================================================
 TARGET_SCREEN_HEIGHT := 2400
 TARGET_SCREEN_WIDTH := 1080
+
+# ============================================================================
+# 动态分区声明（原生 dynamic-partition 设备必备）
+# 修复 build_image.py KeyError: partition_size：
+#   Makefile(core/Makefile:2367) 只有在 PRODUCT_USE_DYNAMIC_PARTITION_SIZE=true
+#   时才往 *_image_info.txt 写 use_dynamic_partition_size=true；
+#   build_image.py(BuildImage) 只有看到该标志才走 du+reserved_size 动态算
+#   分区大小的路径。缺了它 + 又没设 BOARD_*_IMAGE_PARTITION_SIZE，
+#   直接 KeyError: partition_size（vendor/odm/odm_dlkm/vendor_dlkm 全炸）。
+#   dash(device.mk) / lithium(msm8996.mk:321) 同款声明。
+PRODUCT_USE_DYNAMIC_PARTITIONS := true
+PRODUCT_USE_DYNAMIC_PARTITION_SIZE := true

@@ -79,6 +79,12 @@ PRODUCT_CHARACTERISTICS := nosdcard
 
 # A/B + 虚拟 A/B
 AB_OTA_UPDATER := true
+# 虚拟 A/B（launch VAB，与原厂一致）。缺 PRODUCT_VIRTUAL_AB_OTA 时
+# misc_info 里没有 virtual_ab=true，check_partition_sizes 会把设备当
+# full A/B 判（super 需容纳两份副本，即 BOARD_SUPER_PARTITION_SIZE/2
+# =4.56GiB，而本机动态分区实测 5.98GiB 必炸），ota_from_target_files
+# 也会按 full A/B 生成 OTA。Xiaomi 12 Pro Dimensity 原厂即 launch VAB。
+PRODUCT_VIRTUAL_AB_OTA := true
 #
 # 注意：这里只列 AOSP 认识的分区。
 # mi_ext 是小米私有分区，AOSP 构建系统没有对应的构建规则，故不列入。
